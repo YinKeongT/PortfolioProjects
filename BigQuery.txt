@@ -1,0 +1,88 @@
+--SELECT DATA THAT WE ARE GOING TO BE USING
+
+--SELECT location, date, total_cases, new_cases, total_deaths, population
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--ORDER BY 1,2
+
+--looking at total_cases vs total_deaths
+--shows the likelihood of dying if contract covid in your country
+--SELECT location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS Death_percentage
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE location = 'Malaysia'
+--ORDER BY 1,2
+
+--looking at total_cases vs population
+--shows what percentage of population got covid
+--SELECT location, date, population, total_cases, (total_cases/population)*100 AS percent_population_infected
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE location = 'Malaysia'
+--ORDER BY 1,2
+
+--looking at countries with highest infection rate compared to population
+
+--SELECT location, population, MAX(total_cases) AS Highest_infection_count, MAX((total_cases/population))*100 AS percent_population_infected
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--GROUP BY location, population
+--ORDER BY 4 DESC
+
+--looking at countries with highest death rate compared to population
+
+--SELECT location, population, MAX(cast(total_deaths as int)) AS Highest_death_count, MAX((total_deaths/population))*100 AS percent_population_death
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE continent IS NOT Null
+--GROUP BY location, population
+--ORDER BY 3 DESC
+
+
+--let's break things down by continent
+
+--SELECT continent, population, MAX(cast(total_deaths as int)) AS Highest_death_count, 
+--MAX((total_deaths/population))*100 AS percent_population_death
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE continent IS NOT Null
+--GROUP BY continent, population
+--ORDER BY 3 DESC
+
+--showing continents with highest death count per population
+
+--SELECT date, SUM(new_cases) AS daily_total_cases, SUM(cast(new_deaths as int)) AS daily_total_deaths, 
+--SUM(new_deaths)/SUM(new_cases)*100 AS Death_percentage
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE continent IS NOT Null
+--GROUP BY date
+--ORDER BY 1,2
+
+--total cases and total deaths up to date
+
+--SELECT SUM(new_cases) AS daily_total_cases, SUM(cast(new_deaths as int)) AS daily_total_deaths, 
+--SUM(new_deaths)/SUM(new_cases)*100 AS Death_percentage
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths`
+--WHERE continent IS NOT Null
+--GROUP BY date
+--ORDER BY 1,2
+
+--Looking at Total Population vs Vaccinations
+
+--WITH Pop_Vs_Vac AS 
+--(
+--SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+--SUM(vac.new_vaccinations) OVER (Partition by dea.location ORDER BY dea.location, dea.date) AS Rolling_People_Vaccinated
+--FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths` dea
+--JOIN `superb-dream-342913.Portfolio_Project.Covid_Vaccinations` vac
+--ON dea.location = vac.location
+--AND dea.date = vac.date
+--WHERE dea.continent IS NOT Null
+--)
+
+--SELECT *, (Rolling_People_Vaccinated/Population)*100 AS Percent_Population_Vaccinated
+--From Pop_Vs_Vac
+
+CREATE VIEW superb-dream-342913.Portfolio_Project.PercentPopulationVaccinated AS
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+SUM(vac.new_vaccinations) OVER (Partition by dea.location ORDER BY dea.location, dea.date) AS 
+Rolling_People_Vaccinated
+FROM `superb-dream-342913.Portfolio_Project.Covid_Deaths` dea
+JOIN `superb-dream-342913.Portfolio_Project.Covid_Vaccinations` vac
+ON dea.location = vac.location
+AND dea.date = vac.date
+WHERE dea.continent IS NOT Null;
